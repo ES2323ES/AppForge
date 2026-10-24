@@ -28,7 +28,10 @@ jobs:
           if [ -z "$FILE" ] || [ "$FILE" = "null" ]; then echo "ERROR: no .task file found in $MODEL_REPO"; exit 1; fi
           curl -fL --retry 3 "${AUTH[@]}" -o src/app/build/gen-assets/model.task "https://huggingface.co/$MODEL_REPO/resolve/main/$FILE"
           echo "$MODEL_REPO" > src/app/build/gen-assets/model_name.txt
-          ls -lh src/app/build/gen-assets
+          cd src/app/build/gen-assets
+          split -b 200M -d -a 2 --additional-suffix=.task model.task model_
+          rm model.task
+          ls -lh
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
