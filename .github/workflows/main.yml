@@ -11,12 +11,14 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
-      - run: gradle :app:assembleDebug --stacktrace
+      - name: Build
         working-directory: src
+        run: |
+          gradle :app:assembleDebug --console=plain > build.log 2>&1 || { grep -B2 -A14 -E "What went wrong|error:" build.log | head -80; exit 1; }
       - uses: actions/upload-artifact@v4
         with:
           name: AppForge-apk
