@@ -1,7 +1,10 @@
 name: Build APK
 on:
   push:
+    branches: [main]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,7 +27,9 @@ jobs:
         working-directory: src
         run: |
           gradle :app:assembleDebug --console=plain > build.log 2>&1 || { grep -B2 -A14 -E "What went wrong|error:" build.log | head -80; exit 1; }
-      - uses: actions/upload-artifact@v4
-        with:
-          name: AppForge-apk
-          path: src/app/build/outputs/apk/debug/app-debug.apk
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp src/app/build/outputs/apk/debug/app-debug.apk AppForge-v${{ github.run_number }}.apk
+          gh release create v${{ github.run_number }} AppForge-v${{ github.run_number }}.apk --title "v${{ github.run_number }}" --notes "גרסה ${{ github.run_number }}"
