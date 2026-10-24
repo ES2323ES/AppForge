@@ -8,6 +8,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      MODEL_REPO: litert-community/Qwen2.5-1.5B-Instruct
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - run: unzip -q AppForge.zip -d src
@@ -16,6 +19,16 @@ jobs:
           mkdir -p ~/.android src/app/build/gen-assets
           cp debug.keystore ~/.android/debug.keystore
           cp forge.p12 src/app/build/gen-assets/forge.p12
+      - name: Download model
+        run: |
+          AUTH=()
+          [ -n "$HF_TOKEN" ] && AUTH=(-H "Authorization: Bearer $HF_TOKEN")
+          FILE=$(curl -sf "${AUTH[@]}" "https://huggingface.co/api/models/$MODEL_REPO" | jq -r '[.siblings[].rfilename | select(endswith(".task"))] | (map(select(contains("4096"))) + .) | .[0]')
+          echo "model file: $FILE"
+          if [ -z "$FILE" ] || [ "$FILE" = "null" ]; then echo "ERROR: no .task file found in $MODEL_REPO"; exit 1; fi
+          curl -fL --retry 3 "${AUTH[@]}" -o src/app/build/gen-assets/model.task "https://huggingface.co/$MODEL_REPO/resolve/main/$FILE"
+          echo "$MODEL_REPO" > src/app/build/gen-assets/model_name.txt
+          ls -lh src/app/build/gen-assets
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -31,5 +44,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp src/app/build/outputs/apk/debug/app-debug.apk AppForge-v${{ github.run_number }}.apk
-          gh release create v${{ github.run_number }} AppForge-v${{ github.run_number }}.apk --title "v${{ github.run_number }}" --notes "גרסה ${{ github.run_number }}"
+          cp src/app/build/outputs/apk/debug/app-debug.apk AppForge-0.2.2-v${{ github.run_number }}.apk
+          ls -lh AppForge-0.2.2-v${{ github.run_number }}.apk
+          gh release create v${{ github.run_number }} AppForge-0.2.2-v${{ github.run_number }}.apk --title "v${{ github.run_number }} (0.2.2)" --notes "גרסה 0.2.2, בנייה ${{ github.run_number }}"
