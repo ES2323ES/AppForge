@@ -23,9 +23,12 @@ jobs:
         run: |
           AUTH=()
           [ -n "$HF_TOKEN" ] && AUTH=(-H "Authorization: Bearer $HF_TOKEN")
-          FILE=$(curl -sf "${AUTH[@]}" "https://huggingface.co/api/models/$MODEL_REPO" | jq -r '[.siblings[].rfilename | select(endswith(".task"))] | (map(select(contains("4096"))) + .) | .[0]')
-          echo "model file: $FILE"
-          if [ -z "$FILE" ] || [ "$FILE" = "null" ]; then echo "ERROR: no .task file found in $MODEL_REPO"; exit 1; fi
+          curl -sf "${AUTH[@]}" "https://huggingface.co/api/models/$MODEL_REPO?blobs=true" > info.json || { echo "ERROR: cannot read $MODEL_REPO"; exit 1; }
+          echo "available .task files:"
+          jq -r '.siblings[] | select(.rfilename|endswith(".task")) | "\((.size // 0)/1000000|floor) MB  \(.rfilename)"' info.json
+          FILE=$(jq -r '[.siblings[] | select(.rfilename|endswith(".task")) | select((.size // 0) > 0 and .size < 1800000000)] | sort_by(.size) | last | .rfilename // empty' info.json)
+          if [ -z "$FILE" ]; then echo "ERROR: no .task file under 1.8GB in $MODEL_REPO. Choose a smaller model."; exit 1; fi
+          echo "chosen: $FILE"
           curl -fL --retry 3 "${AUTH[@]}" -o src/app/build/gen-assets/model.task "https://huggingface.co/$MODEL_REPO/resolve/main/$FILE"
           echo "$MODEL_REPO" > src/app/build/gen-assets/model_name.txt
           cd src/app/build/gen-assets
