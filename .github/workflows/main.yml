@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MODEL_REPOS: "litert-community/Qwen2.5-0.5B-Instruct litert-community/Gemma3-270M-IT litert-community/SmolLM-135M-Instruct"
-      MAX_BYTES: "420000000"
+      MAX_BYTES: "700000000"
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
     steps:
       - uses: actions/checkout@v4
