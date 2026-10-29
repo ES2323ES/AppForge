@@ -58,6 +58,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp src/app/build/outputs/apk/debug/app-debug.apk AppForge-0.2.9-v${{ github.run_number }}.apk
-          ls -lh AppForge-0.2.9-v${{ github.run_number }}.apk
-          gh release create v${{ github.run_number }} AppForge-0.2.9-v${{ github.run_number }}.apk --title "v${{ github.run_number }} (0.2.9)" --notes "גרסה 0.2.9, בנייה ${{ github.run_number }}"
+          cp src/app/build/outputs/apk/debug/app-debug.apk AppForge-0.3.0-v${{ github.run_number }}.apk
+          ls -lh AppForge-0.3.0-v${{ github.run_number }}.apk
+          gh release create v${{ github.run_number }} AppForge-0.3.0-v${{ github.run_number }}.apk --title "v${{ github.run_number }} (0.3.0)" --notes "גרסה 0.3.0, בנייה ${{ github.run_number }}"
